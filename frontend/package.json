@@ -1,0 +1,60 @@
+{
+  "name": "shelead-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for SheLead e-commerce platform",
+  "private": true,
+  "dependencies": {
+    "@headlessui/react": "^1.7.19",
+    "@heroicons/react": "^2.2.0",
+    "@stripe/react-stripe-js": "^2.1.1",
+    "@stripe/stripe-js": "^2.1.0",
+    "axios": "^1.5.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^6.15.0",
+    "react-scripts": "5.0.1",
+    "react-toastify": "^10.0.6",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@tailwindcss/aspect-ratio": "^0.4.2",
+    "@tailwindcss/forms": "^0.5.6",
+    "@tailwindcss/typography": "^0.5.9",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17"
+  },
+  "keywords": [
+    "ecommerce",
+    "women",
+    "react",
+    "frontend"
+  ],
+  "author": "SheLead Team",
+  "license": "MIT"
+}
