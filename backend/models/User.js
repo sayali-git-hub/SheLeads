@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -7,6 +8,11 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Please provide a name'],
     trim: true,
     maxlength: [50, 'Name cannot exceed 50 characters']
+  },
+  businessName: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'Business name cannot exceed 100 characters']
   },
   email: {
     type: String,
@@ -26,8 +32,8 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'seller', 'admin'],
-    default: 'user'
+    enum: ['buyer', 'seller', 'admin'],
+    default: 'buyer'
   },
   phone: {
     type: String,

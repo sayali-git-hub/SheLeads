@@ -1,0 +1,189 @@
+.product-management {
+  padding: 24px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+}
+
+.product-header-card {
+  margin-bottom: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: none;
+}
+
+.product-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.page-title {
+  color: #2d3436;
+  margin: 0;
+}
+
+.add-product-btn {
+  height: 44px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #FF6B6B;
+  border-color: #FF6B6B;
+}
+
+.add-product-btn:hover {
+  background-color: #ff5252;
+  border-color: #ff5252;
+}
+
+.product-filters {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 250px;
+  border-radius: 8px;
+}
+
+.status-filter {
+  min-width: 180px;
+  border-radius: 8px;
+}
+
+.products-table-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: none;
+}
+
+.products-table-card .ant-table {
+  border-radius: 8px;
+}
+
+.products-table-card .ant-table-thead > tr > th {
+  background-color: #fafafa;
+  font-weight: 600;
+  color: #2d3436;
+}
+
+.products-table-card .ant-table-tbody > tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Modal Styles */
+.product-modal .ant-modal-header {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 20px 24px;
+}
+
+.product-modal .ant-modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #2d3436;
+}
+
+.product-modal .ant-modal-body {
+  padding: 24px;
+}
+
+.product-modal .ant-form-item-label > label {
+  font-weight: 500;
+  color: #2d3436;
+}
+
+.product-modal .ant-upload-picture-card-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.product-modal .ant-upload.ant-upload-select-picture-card {
+  width: 104px;
+  height: 104px;
+  border-radius: 8px;
+  border: 2px dashed #d9d9d9;
+  transition: all 0.3s;
+}
+
+.product-modal .ant-upload.ant-upload-select-picture-card:hover {
+  border-color: #FF6B6B;
+}
+
+.form-actions {
+  margin-bottom: 0;
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.form-actions .ant-space {
+  width: 100%;
+  justify-content: flex-end;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .product-management {
+    padding: 16px;
+  }
+
+  .product-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .add-product-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .product-filters {
+    flex-direction: column;
+  }
+
+  .search-input,
+  .status-filter {
+    width: 100%;
+  }
+
+  .product-modal {
+    width: 100% !important;
+    max-width: 100%;
+    margin: 0;
+    top: 0;
+  }
+
+  .product-modal .ant-modal-body {
+    padding: 16px;
+  }
+}
+
+/* Table Action Buttons */
+.ant-table-tbody .ant-btn {
+  font-size: 12px;
+  padding: 4px 8px;
+  height: auto;
+}
+
+/* Tags */
+.ant-tag {
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+/* Empty State */
+.ant-empty {
+  padding: 40px 0;
+}
+
+.ant-empty-description {
+  color: #636e72;
+}

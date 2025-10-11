@@ -14,7 +14,7 @@ const generateToken = (id) => {
 };
 
 router.post('/register', asyncHandler(async (req, res) => {
-  const { name, email, password, phone, role } = req.body;
+  const { name, businessName, email, password, phone, role } = req.body;
 
   const userExists = await User.findOne({ email });
 
@@ -23,13 +23,20 @@ router.post('/register', asyncHandler(async (req, res) => {
     throw new Error('User already exists');
   }
 
-  const user = await User.create({
+  const userData = {
     name,
     email,
     password,
     phone,
-    role: role || 'user'
-  });
+    role: role || 'buyer'
+  };
+
+  // Add businessName only for sellers
+  if (role === 'seller' && businessName) {
+    userData.businessName = businessName;
+  }
+
+  const user = await User.create(userData);
 
   if (user) {
     res.status(201).json({
@@ -37,8 +44,10 @@ router.post('/register', asyncHandler(async (req, res) => {
       data: {
         _id: user._id,
         name: user.name,
+        businessName: user.businessName,
         email: user.email,
         role: user.role,
+        phone: user.phone,
         token: generateToken(user._id),
       },
     });
@@ -59,8 +68,10 @@ router.post('/login', asyncHandler(async (req, res) => {
       data: {
         _id: user._id,
         name: user.name,
+        businessName: user.businessName,
         email: user.email,
         role: user.role,
+        phone: user.phone,
         token: generateToken(user._id),
       },
     });

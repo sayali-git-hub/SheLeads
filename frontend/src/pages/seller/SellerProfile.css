@@ -1,0 +1,188 @@
+.seller-profile {
+  padding: 24px;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+}
+
+.profile-header-card {
+  margin-bottom: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: none;
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.profile-avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.profile-avatar {
+  background: linear-gradient(135deg, #FF6B6B 0%, #ff5252 100%);
+  font-size: 32px;
+}
+
+.profile-name {
+  margin: 0;
+  color: #2d3436;
+}
+
+.profile-form-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: none;
+  margin-bottom: 24px;
+}
+
+.profile-form-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 20px 24px;
+}
+
+.profile-form-card .ant-card-head-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #2d3436;
+}
+
+.profile-form {
+  max-width: 800px;
+}
+
+.form-section {
+  margin-bottom: 32px;
+}
+
+.section-title {
+  color: #2d3436;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-subtitle {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.ant-divider {
+  margin: 16px 0;
+}
+
+.profile-form .ant-form-item-label > label {
+  font-weight: 500;
+  color: #2d3436;
+}
+
+.profile-form .ant-input,
+.profile-form .ant-input-textarea {
+  border-radius: 8px;
+}
+
+.profile-form .ant-input:focus,
+.profile-form .ant-input-textarea:focus {
+  border-color: #FF6B6B;
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.1);
+}
+
+.form-actions {
+  margin-top: 32px;
+  margin-bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.save-button {
+  background-color: #FF6B6B;
+  border-color: #FF6B6B;
+}
+
+.save-button:hover {
+  background-color: #ff5252;
+  border-color: #ff5252;
+}
+
+.help-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: none;
+  background: linear-gradient(135deg, #FFF5F5 0%, #FFE3E3 100%);
+}
+
+.help-card .ant-card-body {
+  padding: 20px;
+}
+
+.help-card h5 {
+  color: #2d3436;
+  margin-bottom: 8px;
+}
+
+/* Input Icons */
+.ant-input-prefix {
+  color: #636e72;
+  margin-right: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .seller-profile {
+    padding: 16px;
+  }
+
+  .profile-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profile-avatar-section {
+    flex-direction: column;
+    text-align: center;
+    width: 100%;
+  }
+
+  .profile-form {
+    max-width: 100%;
+  }
+
+  .form-actions {
+    justify-content: stretch;
+  }
+
+  .form-actions .ant-space {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-actions .ant-btn {
+    width: 100%;
+  }
+}
+
+/* Form Validation */
+.ant-form-item-has-error .ant-input,
+.ant-form-item-has-error .ant-input-textarea {
+  border-color: #ff4d4f;
+}
+
+.ant-form-item-has-error .ant-input:focus,
+.ant-form-item-has-error .ant-input-textarea:focus {
+  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.1);
+}
+
+/* Success State */
+.ant-form-item-has-success .ant-input,
+.ant-form-item-has-success .ant-input-textarea {
+  border-color: #52c41a;
+}
