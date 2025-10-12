@@ -81,6 +81,11 @@ export const getSellerOrders = async () => {
   return response.data;
 };
 
+export const confirmOrder = async (orderId) => {
+  const response = await api.put(`/seller/orders/${orderId}/confirm`);
+  return response.data;
+};
+
 export const updateOrderStatus = async (orderId, status) => {
   const response = await api.put(`/seller/orders/${orderId}/status`, { status });
   return response.data;

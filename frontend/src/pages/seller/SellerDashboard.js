@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Button, Table, Spin, Typography, Progress } from 'antd';
+import { Card, Row, Col, Button, Table, Spin, Typography, Progress, message } from 'antd';
 import { 
   ShoppingCartOutlined, 
   CheckCircleOutlined, 
@@ -11,6 +11,7 @@ import {
 import { Line } from 'react-chartjs-2';
 import 'chart.js/auto';
 import { useNavigate } from 'react-router-dom';
+import { getDashboardStats } from '../../services/sellerApi';
 import './SellerDashboard.css';
 
 const { Title, Text } = Typography;
@@ -21,29 +22,25 @@ const SellerDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Simulate API call
     const fetchDashboardData = async () => {
       try {
-        // TODO: Replace with actual API call
-        const mockData = {
-          totalSales: 125000,
-          pendingOrders: 8,
-          completedOrders: 42,
-          lowStockItems: 3,
-          salesData: {
-            labels: Array.from({length: 30}, (_, i) => `Day ${i+1}`),
-            values: Array.from({length: 30}, () => Math.floor(Math.random() * 1000) + 500)
-          },
-          topSellingProducts: [
-            { id: 1, name: 'Handmade Cotton Saree', sales: 45 },
-            { id: 2, name: 'Bamboo Basket Set', sales: 32 },
-            { id: 3, name: 'Terracotta Pottery', sales: 28 },
-          ]
-        };
-        
-        setDashboardData(mockData);
+        const response = await getDashboardStats();
+        setDashboardData(response.data);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+        message.error('Failed to load dashboard data');
+        // Set default empty data
+        setDashboardData({
+          totalSales: 0,
+          pendingOrders: 0,
+          completedOrders: 0,
+          lowStockItems: 0,
+          salesData: {
+            labels: [],
+            values: []
+          },
+          topSellingProducts: []
+        });
       } finally {
         setLoading(false);
       }
@@ -102,7 +99,7 @@ const SellerDashboard = () => {
           <Button 
             type="primary" 
             icon={<PlusOutlined />} 
-            onClick={() => navigate('/seller/products/add')}
+            onClick={() => navigate('/seller/products')}
             className="action-button"
           >
             Add Product

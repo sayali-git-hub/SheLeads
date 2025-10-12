@@ -187,3 +187,74 @@
 .ant-empty-description {
   color: #636e72;
 }
+
+/* Form Sections */
+.form-section {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.form-section:last-of-type {
+  border-bottom: none;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d3436;
+  margin-bottom: 16px;
+  margin-top: 0;
+}
+
+/* Upload area styling */
+.product-modal .ant-upload-list-picture-card .ant-upload-list-item {
+  border-radius: 8px;
+}
+
+.product-modal .ant-upload-list-picture-card .ant-upload-list-item-thumbnail img {
+  object-fit: cover;
+}
+
+/* Character counter styling */
+.ant-input-suffix {
+  color: #999;
+}
+
+/* Required field asterisk */
+.ant-form-item-required::before {
+  display: none !important;
+}
+
+/* Error messages */
+.ant-form-item-explain-error {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Switch styling */
+.ant-switch-checked {
+  background-color: #52c41a;
+}
+
+/* Button styling in form */
+.form-actions .ant-btn-primary {
+  background-color: #FF6B6B;
+  border-color: #FF6B6B;
+  min-width: 140px;
+}
+
+.form-actions .ant-btn-primary:hover:not(:disabled) {
+  background-color: #ff5252;
+  border-color: #ff5252;
+}
+
+.form-actions .ant-btn-primary:disabled {
+  background-color: #ffa8a8;
+  border-color: #ffa8a8;
+  opacity: 0.6;
+}
+
+.form-actions .ant-btn-default {
+  min-width: 100px;
+}

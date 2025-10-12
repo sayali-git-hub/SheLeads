@@ -13,7 +13,8 @@ import {
   Image,
   message,
   Badge,
-  Steps
+  Steps,
+  Popconfirm
 } from 'antd';
 import {
   EyeOutlined,
@@ -21,8 +22,10 @@ import {
   ShoppingCartOutlined,
   ClockCircleOutlined,
   CheckCircleOutlined,
-  RocketOutlined
+  RocketOutlined,
+  CheckOutlined
 } from '@ant-design/icons';
+import { getSellerOrders, confirmOrder, updateOrderStatus } from '../../services/sellerApi';
 import './OrderManagement.css';
 
 const { Option } = Select;
@@ -36,7 +39,6 @@ const OrderManagement = () => {
   const [searchText, setSearchText] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
 
-  // Mock data - Replace with actual API call
   useEffect(() => {
     fetchOrders();
   }, []);
@@ -44,79 +46,50 @@ const OrderManagement = () => {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API call
-      const mockOrders = [
-        {
-          id: 'ORD-12345',
-          customerName: 'Priya Sharma',
-          customerPhone: '+91 98765 43210',
-          customerAddress: '123, MG Road, Bangalore, Karnataka - 560001',
-          date: '2025-10-08',
-          time: '10:30 AM',
-          items: [
-            {
-              id: 1,
-              name: 'Handmade Cotton Saree',
-              image: 'https://via.placeholder.com/80',
-              quantity: 2,
-              price: 2500
-            },
-            {
-              id: 2,
-              name: 'Bamboo Basket Set',
-              image: 'https://via.placeholder.com/80',
-              quantity: 1,
-              price: 850
-            }
-          ],
-          totalAmount: 5850,
-          status: 'pending',
-          paymentStatus: 'paid'
-        },
-        {
-          id: 'ORD-12344',
-          customerName: 'Anjali Verma',
-          customerPhone: '+91 87654 32109',
-          customerAddress: '456, Park Street, Kolkata, West Bengal - 700016',
-          date: '2025-10-07',
-          time: '02:15 PM',
-          items: [
-            {
-              id: 3,
-              name: 'Terracotta Pottery',
-              image: 'https://via.placeholder.com/80',
-              quantity: 3,
-              price: 1200
-            }
-          ],
-          totalAmount: 3600,
-          status: 'shipped',
-          paymentStatus: 'paid'
-        },
-        {
-          id: 'ORD-12343',
-          customerName: 'Meera Patel',
-          customerPhone: '+91 76543 21098',
-          customerAddress: '789, Civil Lines, Ahmedabad, Gujarat - 380001',
-          date: '2025-10-06',
-          time: '11:45 AM',
-          items: [
-            {
-              id: 1,
-              name: 'Handmade Cotton Saree',
-              image: 'https://via.placeholder.com/80',
-              quantity: 1,
-              price: 2500
-            }
-          ],
-          totalAmount: 2500,
-          status: 'delivered',
-          paymentStatus: 'paid'
-        }
-      ];
-      setOrders(mockOrders);
+      const response = await getSellerOrders();
+      const ordersData = response.data || [];
+      
+      // Transform orders to match UI expectations
+      const transformedOrders = ordersData.map(order => ({
+        id: order._id,
+        orderId: order.orderId,
+        customerName: order.buyerName || order.user?.name || 'N/A',
+        customerPhone: order.buyerPhone || 'N/A',
+        customerAddress: order.deliveryAddress ? 
+          `${order.deliveryAddress.street}, ${order.deliveryAddress.city}, ${order.deliveryAddress.state} - ${order.deliveryAddress.zipCode}` : 'N/A',
+        date: new Date(order.orderDate || order.createdAt).toLocaleDateString('en-IN'),
+        time: new Date(order.orderDate || order.createdAt).toLocaleTimeString('en-IN'),
+        items: order.items.map(item => ({
+          id: item.product?._id || item.product,
+          name: item.productName || item.product?.name || 'Unknown Product',
+          image: item.productImage || (item.product?.images && item.product.images.length > 0 ? item.product.images[0].url : 'https://via.placeholder.com/80'),
+          quantity: item.quantity,
+          price: item.price
+        })),
+        totalAmount: order.totalAmount || order.totalPrice,
+        status: order.status,
+        paymentStatus: order.paymentStatus || 'pending'
+      }));
+      
+      setOrders(transformedOrders);
     } catch (error) {
+      console.error('Error fetching orders:', error);
       message.error('Failed to fetch orders');
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmOrder = async (orderId) => {
+    try {
+      setLoading(true);
+      await confirmOrder(orderId);
+      message.success('Order confirmed! Stock updated.');
+      await fetchOrders(); // Refresh orders
+    } catch (error) {
+      console.error('Error confirming order:', error);
+      message.error(error.response?.data?.message || 'Failed to confirm order');
     } finally {
       setLoading(false);
     }
@@ -124,13 +97,15 @@ const OrderManagement = () => {
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
-      // TODO: Replace with actual API call
-      setOrders(orders.map(order =>
-        order.id === orderId ? { ...order, status: newStatus } : order
-      ));
+      setLoading(true);
+      await updateOrderStatus(orderId, newStatus);
       message.success(`Order status updated to ${newStatus}`);
+      await fetchOrders(); // Refresh orders
     } catch (error) {
-      message.error('Failed to update order status');
+      console.error('Error updating order status:', error);
+      message.error(error.response?.data?.message || 'Failed to update order status');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -142,9 +117,11 @@ const OrderManagement = () => {
   const getStatusColor = (status) => {
     const colors = {
       pending: 'orange',
+      confirmed: 'blue',
       processing: 'blue',
       shipped: 'cyan',
-      delivered: 'green'
+      delivered: 'green',
+      cancelled: 'red'
     };
     return colors[status] || 'default';
   };
@@ -162,6 +139,7 @@ const OrderManagement = () => {
   const getOrderStep = (status) => {
     const steps = {
       pending: 0,
+      confirmed: 1,
       processing: 1,
       shipped: 2,
       delivered: 3
@@ -172,8 +150,8 @@ const OrderManagement = () => {
   // Filter orders
   const filteredOrders = orders.filter(order => {
     const matchesSearch = 
-      order.id.toLowerCase().includes(searchText.toLowerCase()) ||
-      order.customerName.toLowerCase().includes(searchText.toLowerCase());
+      (order.orderId && order.orderId.toLowerCase().includes(searchText.toLowerCase())) ||
+      (order.customerName && order.customerName.toLowerCase().includes(searchText.toLowerCase()));
     const matchesStatus = filterStatus === 'all' || order.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -181,9 +159,9 @@ const OrderManagement = () => {
   const columns = [
     {
       title: 'Order ID',
-      dataIndex: 'id',
-      key: 'id',
-      render: (id) => <Text strong>{id}</Text>
+      dataIndex: 'orderId',
+      key: 'orderId',
+      render: (orderId) => <Text strong>{orderId || 'N/A'}</Text>
     },
     {
       title: 'Customer Name',
@@ -217,40 +195,45 @@ const OrderManagement = () => {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (status, record) => (
-        <Select
-          value={status}
-          onChange={(value) => handleStatusChange(record.id, value)}
-          style={{ width: 130 }}
-          size="small"
-        >
-          <Option value="pending">
-            <Tag color="orange" icon={getStatusIcon('pending')}>Pending</Tag>
-          </Option>
-          <Option value="processing">
-            <Tag color="blue" icon={getStatusIcon('processing')}>Processing</Tag>
-          </Option>
-          <Option value="shipped">
-            <Tag color="cyan" icon={getStatusIcon('shipped')}>Shipped</Tag>
-          </Option>
-          <Option value="delivered">
-            <Tag color="green" icon={getStatusIcon('delivered')}>Delivered</Tag>
-          </Option>
-        </Select>
+      render: (status) => (
+        <Tag color={getStatusColor(status)} icon={getStatusIcon(status)}>
+          {status.toUpperCase()}
+        </Tag>
       )
     },
     {
       title: 'Actions',
       key: 'actions',
+      width: 200,
       render: (_, record) => (
-        <Button
-          type="primary"
-          icon={<EyeOutlined />}
-          onClick={() => handleViewDetails(record)}
-          size="small"
-        >
-          View Details
-        </Button>
+        <Space>
+          {record.status === 'pending' && (
+            <Popconfirm
+              title="Confirm Order"
+              description="This will reduce stock and mark order as confirmed. Continue?"
+              onConfirm={() => handleConfirmOrder(record.id)}
+              okText="Yes"
+              cancelText="No"
+            >
+              <Button
+                type="primary"
+                icon={<CheckOutlined />}
+                size="small"
+                style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+              >
+                Confirm
+              </Button>
+            </Popconfirm>
+          )}
+          <Button
+            type="default"
+            icon={<EyeOutlined />}
+            onClick={() => handleViewDetails(record)}
+            size="small"
+          >
+            View
+          </Button>
+        </Space>
       )
     }
   ];
@@ -427,6 +410,27 @@ const OrderManagement = () => {
 
             {/* Action Buttons */}
             <div className="order-actions">
+              {selectedOrder.status === 'pending' && (
+                <Popconfirm
+                  title="Confirm Order"
+                  description="This will reduce stock and mark order as confirmed. Continue?"
+                  onConfirm={() => {
+                    handleConfirmOrder(selectedOrder.id);
+                    setDetailsModalVisible(false);
+                  }}
+                  okText="Yes"
+                  cancelText="No"
+                >
+                  <Button
+                    type="primary"
+                    icon={<CheckOutlined />}
+                    size="large"
+                    style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', marginRight: '10px' }}
+                  >
+                    Confirm Order
+                  </Button>
+                </Popconfirm>
+              )}
               <Select
                 value={selectedOrder.status}
                 onChange={(value) => {
@@ -437,6 +441,7 @@ const OrderManagement = () => {
                 size="large"
               >
                 <Option value="pending">Pending</Option>
+                <Option value="confirmed">Confirmed</Option>
                 <Option value="processing">Processing</Option>
                 <Option value="shipped">Shipped</Option>
                 <Option value="delivered">Delivered</Option>

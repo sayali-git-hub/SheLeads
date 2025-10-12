@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.get('/', asyncHandler(async (req, res) => {
   const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 10;
+  const limit = parseInt(req.query.limit, 10) || 20;
   const skip = (page - 1) * limit;
   
   const query = {};
@@ -21,7 +21,10 @@ router.get('/', asyncHandler(async (req, res) => {
   }
   
   if (req.query.search) {
-    query.$text = { $search: req.query.search };
+    query.$or = [
+      { name: { $regex: req.query.search, $options: 'i' } },
+      { description: { $regex: req.query.search, $options: 'i' } }
+    ];
   }
   
   if (req.query.minPrice || req.query.maxPrice) {
@@ -34,11 +37,21 @@ router.get('/', asyncHandler(async (req, res) => {
     }
   }
   
+  // Only show active products with stock > 0
   query.isActive = true;
+  query.stock = { $gt: 0 };
+  
+  // Sorting
+  let sortOption = { createdAt: -1 }; // Default: newest first
+  if (req.query.sort === 'price_asc') {
+    sortOption = { price: 1 };
+  } else if (req.query.sort === 'price_desc') {
+    sortOption = { price: -1 };
+  }
   
   const products = await Product.find(query)
-    .populate('seller', 'name profileImage')
-    .sort({ createdAt: -1 })
+    .populate('seller', 'name email')
+    .sort(sortOption)
     .skip(skip)
     .limit(limit);
     

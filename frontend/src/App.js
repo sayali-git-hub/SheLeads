@@ -9,7 +9,7 @@ import Products from './pages/Products';
 import Cart from './pages/Cart';
 import DualLogin from './pages/DualLogin';
 import DualRegister from './pages/DualRegister';
-import ProductDetails from './pages/ProductDetails';
+import ProductDetail from './pages/ProductDetail';
 import Checkout from './pages/Checkout';
 
 // Seller Pages
@@ -54,7 +54,7 @@ function App() {
           <div className="min-h-screen flex flex-col">
             <Navbar />
             <main className="flex-grow">
-              <ProductDetails />
+              <ProductDetail />
             </main>
             <Footer />
             <ToastContainer position="bottom-right" />

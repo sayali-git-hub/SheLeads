@@ -1,28 +1,141 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FaLock, FaArrowRight, FaCheckCircle } from 'react-icons/fa';
+import { createOrder } from '../services/buyerApi';
 
 const Checkout = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [paymentMethod, setPaymentMethod] = useState('credit');
+  const [paymentMethod, setPaymentMethod] = useState('cod');
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [placedOrderId, setPlacedOrderId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   
-  // Sample cart data - in a real app, this would come from your state management
-  const cartItems = [
-    { id: 1, name: 'Floral Summer Dress', price: 59.99, quantity: 1, image: 'https://via.placeholder.com/100' },
-    { id: 2, name: 'Classic White Blouse', price: 39.99, quantity: 2, image: 'https://via.placeholder.com/100' },
-  ];
+  // Get cart items from navigation state
+  const [cartItems, setCartItems] = useState([]);
+  const [formData, setFormData] = useState({
+    email: '',
+    firstName: '',
+    lastName: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: 'India',
+    phone: ''
+  });
+
+  useEffect(() => {
+    // Check if user is logged in
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please login to continue with checkout');
+      navigate('/login', { state: { from: '/checkout', items: location.state?.items } });
+      return;
+    }
+
+    // Get items from location state (passed from ProductDetail)
+    if (location.state?.items) {
+      setCartItems(location.state.items);
+    } else {
+      // If no items, redirect to products page
+      navigate('/products');
+    }
+  }, [location, navigate]);
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = 5.99;
-  const tax = subtotal * 0.1; // 10% tax
+  const shipping = 0; // Free shipping
+  const tax = 0; // No tax for now
   const total = subtotal + shipping + tax;
 
-  const handlePlaceOrder = (e) => {
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handlePlaceOrder = async (e) => {
     e.preventDefault();
-    // In a real app, this would process the payment and create an order
-    setOrderPlaced(true);
-    setStep(4); // Show order confirmation
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Check if user is logged in
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Please login to place an order');
+        navigate('/login');
+        return;
+      }
+
+      // Validate form data
+      if (!formData.firstName || !formData.lastName || !formData.address || 
+          !formData.city || !formData.state || !formData.zipCode || !formData.phone) {
+        setError('Please fill in all required fields');
+        setLoading(false);
+        return;
+      }
+
+      // Prepare order data
+      const orderData = {
+        items: cartItems.map(item => ({
+          product: item.product,
+          quantity: item.quantity
+        })),
+        deliveryAddress: {
+          street: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zipCode: formData.zipCode,
+          country: formData.country
+        },
+        shippingAddress: {
+          street: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zipCode: formData.zipCode,
+          country: formData.country
+        },
+        paymentMethod: paymentMethod,
+        buyerName: `${formData.firstName} ${formData.lastName}`,
+        buyerPhone: formData.phone
+      };
+
+      console.log('Cart items:', cartItems);
+      console.log('Placing order with data:', JSON.stringify(orderData, null, 2));
+      const response = await createOrder(orderData);
+      console.log('Order response:', response);
+      
+      setPlacedOrderId(response.data.orderId);
+      setOrderPlaced(true);
+      setStep(4);
+    } catch (err) {
+      console.error('Error placing order:', err);
+      console.error('Error response:', err.response?.data);
+      
+      // Show specific error message
+      let errorMessage = 'Failed to place order. Please try again.';
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.response?.data?.error) {
+        // Check if error is an array
+        if (Array.isArray(err.response.data.error)) {
+          errorMessage = err.response.data.error.join(', ');
+        } else {
+          errorMessage = err.response.data.error;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      console.error('Final error message:', errorMessage);
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (orderPlaced) {
@@ -38,7 +151,7 @@ const Checkout = () => {
               Thank you for your purchase!
             </p>
             <p className="mt-1 text-sm text-gray-500">
-              Your order #12345 has been placed and will be shipped soon.
+              Your order #{placedOrderId || 'PENDING'} has been placed and will be shipped soon.
             </p>
             <div className="mt-8">
               <Link
@@ -130,8 +243,11 @@ const Checkout = () => {
                       <input
                         type="email"
                         id="email-address"
-                        name="email-address"
+                        name="email"
                         autoComplete="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
                         className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
                       />
                     </div>
@@ -149,8 +265,11 @@ const Checkout = () => {
                         <input
                           type="text"
                           id="first-name"
-                          name="first-name"
+                          name="firstName"
                           autoComplete="given-name"
+                          value={formData.firstName}
+                          onChange={handleInputChange}
+                          required
                           className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
                         />
                       </div>
@@ -164,8 +283,11 @@ const Checkout = () => {
                         <input
                           type="text"
                           id="last-name"
-                          name="last-name"
+                          name="lastName"
                           autoComplete="family-name"
+                          value={formData.lastName}
+                          onChange={handleInputChange}
+                          required
                           className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
                         />
                       </div>
@@ -181,6 +303,9 @@ const Checkout = () => {
                           name="address"
                           id="address"
                           autoComplete="street-address"
+                          value={formData.address}
+                          onChange={handleInputChange}
+                          required
                           className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
                         />
                       </div>
@@ -196,6 +321,9 @@ const Checkout = () => {
                           name="city"
                           id="city"
                           autoComplete="address-level2"
+                          value={formData.city}
+                          onChange={handleInputChange}
+                          required
                           className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
                         />
                       </div>
@@ -210,8 +338,12 @@ const Checkout = () => {
                           id="country"
                           name="country"
                           autoComplete="country"
+                          value={formData.country}
+                          onChange={handleInputChange}
+                          required
                           className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
                         >
+                          <option>India</option>
                           <option>United States</option>
                           <option>Canada</option>
                           <option>United Kingdom</option>
@@ -226,9 +358,12 @@ const Checkout = () => {
                       <div className="mt-1">
                         <input
                           type="text"
-                          name="region"
+                          name="state"
                           id="region"
                           autoComplete="address-level1"
+                          value={formData.state}
+                          onChange={handleInputChange}
+                          required
                           className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
                         />
                       </div>
@@ -241,9 +376,12 @@ const Checkout = () => {
                       <div className="mt-1">
                         <input
                           type="text"
-                          name="postal-code"
+                          name="zipCode"
                           id="postal-code"
                           autoComplete="postal-code"
+                          value={formData.zipCode}
+                          onChange={handleInputChange}
+                          required
                           className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
                         />
                       </div>
@@ -259,6 +397,9 @@ const Checkout = () => {
                           name="phone"
                           id="phone"
                           autoComplete="tel"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          required
                           className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500 sm:text-sm"
                         />
                       </div>
@@ -291,6 +432,19 @@ const Checkout = () => {
                   <div className="space-y-4">
                     <div className="flex items-center">
                       <input
+                        id="cod"
+                        name="payment-method"
+                        type="radio"
+                        className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300"
+                        checked={paymentMethod === 'cod'}
+                        onChange={() => setPaymentMethod('cod')}
+                      />
+                      <label htmlFor="cod" className="ml-3 block text-sm font-medium text-gray-700">
+                        Cash on Delivery
+                      </label>
+                    </div>
+                    <div className="flex items-center">
+                      <input
                         id="credit"
                         name="payment-method"
                         type="radio"
@@ -299,7 +453,7 @@ const Checkout = () => {
                         onChange={() => setPaymentMethod('credit')}
                       />
                       <label htmlFor="credit" className="ml-3 block text-sm font-medium text-gray-700">
-                        Credit card
+                        Credit/Debit Card
                       </label>
                     </div>
                     <div className="flex items-center">
@@ -313,19 +467,6 @@ const Checkout = () => {
                       />
                       <label htmlFor="paypal" className="ml-3 block text-sm font-medium text-gray-700">
                         PayPal
-                      </label>
-                    </div>
-                    <div className="flex items-center">
-                      <input
-                        id="bank-transfer"
-                        name="payment-method"
-                        type="radio"
-                        className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300"
-                        checked={paymentMethod === 'bank'}
-                        onChange={() => setPaymentMethod('bank')}
-                      />
-                      <label htmlFor="bank-transfer" className="ml-3 block text-sm font-medium text-gray-700">
-                        Bank Transfer
                       </label>
                     </div>
                   </div>
@@ -429,13 +570,16 @@ const Checkout = () => {
                 <div className="mt-6 bg-white border border-gray-200 rounded-lg overflow-hidden">
                   <h3 className="sr-only">Items in your cart</h3>
                   <ul className="divide-y divide-gray-200">
-                    {cartItems.map((item) => (
-                      <li key={item.id} className="flex py-6 px-4 sm:px-6">
+                    {cartItems.map((item, index) => (
+                      <li key={item.product || index} className="flex py-6 px-4 sm:px-6">
                         <div className="flex-shrink-0">
                           <img
-                            src={item.image}
+                            src={item.image || 'https://via.placeholder.com/100'}
                             alt={item.name}
                             className="w-20 rounded-md"
+                            onError={(e) => {
+                              e.target.src = 'https://via.placeholder.com/100?text=No+Image';
+                            }}
                           />
                         </div>
 
@@ -443,9 +587,9 @@ const Checkout = () => {
                           <div className="flex">
                             <div className="min-w-0 flex-1">
                               <h4 className="text-sm">
-                                <a href="#" className="font-medium text-gray-700 hover:text-gray-800">
+                                <span className="font-medium text-gray-700">
                                   {item.name}
-                                </a>
+                                </span>
                               </h4>
                               <p className="mt-1 text-sm text-gray-500">Quantity: {item.quantity}</p>
                             </div>
@@ -453,7 +597,7 @@ const Checkout = () => {
 
                           <div className="flex-1 pt-2 flex items-end justify-between">
                             <p className="mt-1 text-sm font-medium text-gray-900">
-                              ${(item.price * item.quantity).toFixed(2)}
+                              ₹{(item.price * item.quantity).toLocaleString('en-IN')}
                             </p>
                           </div>
                         </div>
@@ -464,36 +608,44 @@ const Checkout = () => {
                   <dl className="border-t border-gray-200 py-6 px-4 space-y-6 sm:px-6">
                     <div className="flex items-center justify-between">
                       <dt className="text-sm">Subtotal</dt>
-                      <dd className="text-sm font-medium text-gray-900">${subtotal.toFixed(2)}</dd>
+                      <dd className="text-sm font-medium text-gray-900">₹{subtotal.toLocaleString('en-IN')}</dd>
                     </div>
                     <div className="flex items-center justify-between">
                       <dt className="text-sm">Shipping</dt>
-                      <dd className="text-sm font-medium text-gray-900">${shipping.toFixed(2)}</dd>
+                      <dd className="text-sm font-medium text-gray-900">{shipping === 0 ? 'FREE' : `₹${shipping.toLocaleString('en-IN')}`}</dd>
                     </div>
                     <div className="flex items-center justify-between">
                       <dt className="text-sm">Tax</dt>
-                      <dd className="text-sm font-medium text-gray-900">${tax.toFixed(2)}</dd>
+                      <dd className="text-sm font-medium text-gray-900">₹{tax.toLocaleString('en-IN')}</dd>
                     </div>
                     <div className="flex items-center justify-between border-t border-gray-200 pt-6">
                       <dt className="text-base font-medium">Total</dt>
-                      <dd className="text-base font-medium text-gray-900">${total.toFixed(2)}</dd>
+                      <dd className="text-base font-medium text-gray-900">₹{total.toLocaleString('en-IN')}</dd>
                     </div>
                   </dl>
                 </div>
+
+                {error && (
+                  <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                    {error}
+                  </div>
+                )}
 
                 <div className="mt-6 flex justify-between">
                   <button
                     type="button"
                     onClick={() => setStep(2)}
-                    className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+                    disabled={loading}
+                    className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 disabled:opacity-50"
                   >
                     Back
                   </button>
                   <button
                     type="submit"
-                    className="bg-pink-600 border border-transparent rounded-md shadow-sm py-2 px-4 text-sm font-medium text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+                    disabled={loading}
+                    className="bg-pink-600 border border-transparent rounded-md shadow-sm py-2 px-4 text-sm font-medium text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Place Order
+                    {loading ? 'Placing Order...' : 'Place Order'}
                   </button>
                 </div>
               </form>
@@ -508,20 +660,23 @@ const Checkout = () => {
               <div className="mt-6">
                 <h3 className="sr-only">Items in your cart</h3>
                 <ul className="divide-y divide-gray-200">
-                  {cartItems.map((item) => (
-                    <li key={item.id} className="py-4 flex">
+                  {cartItems.map((item, index) => (
+                    <li key={item.product || index} className="py-4 flex">
                       <div className="flex-shrink-0">
                         <img
-                          src={item.image}
+                          src={item.image || 'https://via.placeholder.com/100'}
                           alt={item.name}
                           className="w-20 rounded-md"
+                          onError={(e) => {
+                            e.target.src = 'https://via.placeholder.com/100?text=No+Image';
+                          }}
                         />
                       </div>
                       <div className="ml-4 flex-1 flex flex-col">
                         <div>
                           <div className="flex justify-between text-base font-medium text-gray-900">
                             <h3>{item.name}</h3>
-                            <p className="ml-4">${(item.price * item.quantity).toFixed(2)}</p>
+                            <p className="ml-4">₹{(item.price * item.quantity).toLocaleString('en-IN')}</p>
                           </div>
                           <p className="mt-1 text-sm text-gray-500">Qty {item.quantity}</p>
                         </div>
@@ -533,19 +688,19 @@ const Checkout = () => {
                 <dl className="border-t border-gray-200 mt-6 pt-6 space-y-4">
                   <div className="flex items-center justify-between">
                     <dt className="text-sm">Subtotal</dt>
-                    <dd className="text-sm font-medium text-gray-900">${subtotal.toFixed(2)}</dd>
+                    <dd className="text-sm font-medium text-gray-900">₹{subtotal.toLocaleString('en-IN')}</dd>
                   </div>
                   <div className="flex items-center justify-between">
                     <dt className="text-sm">Shipping</dt>
-                    <dd className="text-sm font-medium text-gray-900">${shipping.toFixed(2)}</dd>
+                    <dd className="text-sm font-medium text-gray-900">{shipping === 0 ? 'FREE' : `₹${shipping.toLocaleString('en-IN')}`}</dd>
                   </div>
                   <div className="flex items-center justify-between">
                     <dt className="text-sm">Tax</dt>
-                    <dd className="text-sm font-medium text-gray-900">${tax.toFixed(2)}</dd>
+                    <dd className="text-sm font-medium text-gray-900">₹{tax.toLocaleString('en-IN')}</dd>
                   </div>
                   <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                     <dt className="text-base font-medium">Total</dt>
-                    <dd className="text-base font-medium text-gray-900">${total.toFixed(2)}</dd>
+                    <dd className="text-base font-medium text-gray-900">₹{total.toLocaleString('en-IN')}</dd>
                   </div>
                 </dl>
               </div>

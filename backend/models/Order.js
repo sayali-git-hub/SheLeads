@@ -1,15 +1,42 @@
 const mongoose = require('mongoose');
+const Counter = require('./Counter');
 
 const orderSchema = new mongoose.Schema({
+  orderId: {
+    type: String,
+    unique: true
+    // Not required here - will be set in pre-save hook
+  },
+  orderNumber: {
+    type: Number,
+    unique: true
+    // Not required here - will be set in pre-save hook
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
+    required: true
+  },
+  buyerName: {
+    type: String,
+    required: true
+  },
+  buyerPhone: {
+    type: String,
     required: true
   },
   items: [{
     product: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Product',
+      required: true
+    },
+    productName: {
+      type: String,
+      required: true
+    },
+    productImage: {
+      type: String,
       required: true
     },
     quantity: {
@@ -28,7 +55,7 @@ const orderSchema = new mongoose.Schema({
       required: true
     }
   }],
-  shippingAddress: {
+  deliveryAddress: {
     street: {
       type: String,
       required: true
@@ -47,13 +74,26 @@ const orderSchema = new mongoose.Schema({
     },
     country: {
       type: String,
-      required: true
+      default: 'India'
     }
+  },
+  shippingAddress: {
+    street: String,
+    city: String,
+    state: String,
+    zipCode: String,
+    country: String
   },
   paymentMethod: {
     type: String,
     required: true,
-    enum: ['stripe', 'paypal', 'cash_on_delivery']
+    enum: ['stripe', 'paypal', 'cash_on_delivery', 'cod'],
+    default: 'cod'
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['pending', 'paid', 'failed'],
+    default: 'pending'
   },
   paymentResult: {
     id: String,
@@ -84,7 +124,7 @@ const orderSchema = new mongoose.Schema({
   status: {
     type: String,
     required: true,
-    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
+    enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'],
     default: 'pending'
   },
   deliveredAt: Date,
@@ -92,6 +132,10 @@ const orderSchema = new mongoose.Schema({
   notes: {
     type: String,
     maxlength: [500, 'Notes cannot exceed 500 characters']
+  },
+  orderDate: {
+    type: Date,
+    default: Date.now
   },
   createdAt: {
     type: Date,
@@ -104,8 +148,16 @@ const orderSchema = new mongoose.Schema({
 orderSchema.index({ user: 1, createdAt: -1 });
 orderSchema.index({ 'items.seller': 1 });
 orderSchema.index({ status: 1 });
+orderSchema.index({ orderId: 1 });
 
-orderSchema.pre('save', function(next) {
+// Generate unique order ID and number before saving
+orderSchema.pre('save', async function(next) {
+  if (!this.orderId) {
+    // Get next sequential order number
+    const orderNumber = await Counter.getNextSequence('orderCounter');
+    this.orderNumber = orderNumber;
+    this.orderId = `ORD${String(orderNumber).padStart(4, '0')}`; // e.g., ORD0001, ORD0002
+  }
   this.itemsPrice = this.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   this.totalPrice = this.itemsPrice + this.taxPrice + this.shippingPrice;
   next();

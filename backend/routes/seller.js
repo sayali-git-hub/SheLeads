@@ -204,19 +204,65 @@ router.get('/products', protect, authorize('seller', 'admin'), async (req, res) 
 // @access  Private/Seller
 router.post('/products', protect, authorize('seller', 'admin'), async (req, res) => {
   try {
+    console.log('Received product data:', JSON.stringify(req.body, null, 2));
+    
+    // Validate required fields
+    const { name, description, price, category, stock, images } = req.body;
+    
+    if (!name || !description || price === undefined || !category || stock === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields',
+        required: ['name', 'description', 'price', 'category', 'stock', 'images']
+      });
+    }
+    
+    if (!images || images.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'At least one product image is required'
+      });
+    }
+
     const productData = {
-      ...req.body,
+      name,
+      description,
+      price: Number(price),
+      category,
+      stock: Number(stock),
+      images,
       seller: req.user.id,
-      isActive: req.body.status !== undefined ? req.body.status : true
+      isActive: req.body.isActive !== undefined ? req.body.isActive : true,
+      tags: req.body.tags || []
     };
 
+    console.log('Creating product with data:', JSON.stringify(productData, null, 2));
     const product = await Product.create(productData);
+    console.log('Product created successfully:', product._id);
 
-    // Update seller statistics
-    await Seller.findOneAndUpdate(
-      { user: req.user.id },
-      { $inc: { 'statistics.totalProducts': 1 } }
-    );
+    // Update seller statistics (optional - create seller profile if doesn't exist)
+    try {
+      let seller = await Seller.findOne({ user: req.user.id });
+      if (!seller) {
+        seller = await Seller.create({
+          user: req.user.id,
+          businessName: req.user.name || 'My Business',
+          statistics: {
+            totalProducts: 1,
+            totalSales: 0,
+            totalOrders: 0
+          }
+        });
+      } else {
+        await Seller.findOneAndUpdate(
+          { user: req.user.id },
+          { $inc: { 'statistics.totalProducts': 1 } }
+        );
+      }
+    } catch (sellerError) {
+      console.log('Seller statistics update failed:', sellerError.message);
+      // Continue anyway - product was created successfully
+    }
 
     res.status(201).json({
       success: true,
@@ -224,10 +270,16 @@ router.post('/products', protect, authorize('seller', 'admin'), async (req, res)
       message: 'Product created successfully'
     });
   } catch (error) {
+    console.error('Error creating product:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Error creating product',
-      error: error.message
+      error: error.message,
+      details: error.errors ? Object.keys(error.errors).map(key => ({
+        field: key,
+        message: error.errors[key].message
+      })) : null
     });
   }
 });
@@ -358,6 +410,83 @@ router.get('/orders', protect, authorize('seller', 'admin'), async (req, res) =>
   }
 });
 
+// @desc    Confirm order (reduce stock)
+// @route   PUT /api/seller/orders/:id/confirm
+// @access  Private/Seller
+router.put('/orders/:id/confirm', protect, authorize('seller', 'admin'), async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    // Check if seller has items in this order
+    const hasSellerItems = order.items.some(item => item.seller.toString() === req.user.id);
+    if (!hasSellerItems) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to confirm this order'
+      });
+    }
+
+    if (order.status !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        message: 'Order has already been confirmed or processed'
+      });
+    }
+
+    // Reduce stock for seller's items
+    for (const item of order.items) {
+      if (item.seller.toString() === req.user.id) {
+        const product = await Product.findById(item.product);
+        if (product) {
+          const newStock = product.stock - item.quantity;
+          product.stock = newStock;
+          
+          // If stock becomes 0, set product as inactive
+          if (newStock <= 0) {
+            product.isActive = false;
+            product.stock = 0;
+          }
+          
+          await product.save();
+        }
+      }
+    }
+
+    // Update order status
+    order.status = 'confirmed';
+    await order.save();
+
+    // Create notification for buyer
+    await Notification.create({
+      user: order.user,
+      type: 'order_confirmed',
+      title: 'Order Confirmed',
+      message: `Your order #${order.orderId} has been confirmed by the seller`,
+      relatedId: order._id,
+      relatedModel: 'Order'
+    });
+
+    res.status(200).json({
+      success: true,
+      data: order,
+      message: 'Order confirmed! Stock updated.'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error confirming order',
+      error: error.message
+    });
+  }
+});
+
 // @desc    Update order status
 // @route   PUT /api/seller/orders/:id/status
 // @access  Private/Seller
@@ -393,7 +522,7 @@ router.put('/orders/:id/status', protect, authorize('seller', 'admin'), async (r
       user: order.user,
       type: 'order',
       title: 'Order Status Updated',
-      message: `Your order #${order._id.toString().slice(-6)} status has been updated to ${status}`,
+      message: `Your order #${order.orderId} status has been updated to ${status}`,
       relatedId: order._id,
       relatedModel: 'Order'
     });

@@ -6,8 +6,16 @@ import {
   ExclamationCircleOutlined,
   CheckCircleOutlined,
   DeleteOutlined,
-  CheckOutlined
+  CheckOutlined,
+  InfoCircleOutlined
 } from '@ant-design/icons';
+import { 
+  getNotifications, 
+  markNotificationAsRead, 
+  markAllNotificationsAsRead,
+  deleteNotification,
+  clearAllNotifications
+} from '../../services/sellerApi';
 import './Notifications.css';
 
 const { Title, Text } = Typography;
@@ -20,75 +28,68 @@ const Notifications = () => {
     fetchNotifications();
   }, []);
 
+  const getNotificationIcon = (type) => {
+    const icons = {
+      new_order: <ShoppingCartOutlined />,
+      order: <CheckCircleOutlined />,
+      order_confirmed: <CheckCircleOutlined />,
+      stock: <ExclamationCircleOutlined />,
+      payment: <InfoCircleOutlined />,
+      system: <BellOutlined />,
+      other: <InfoCircleOutlined />
+    };
+    return icons[type] || <InfoCircleOutlined />;
+  };
+
+  const getNotificationColor = (type) => {
+    const colors = {
+      new_order: '#4CAF50',
+      order: '#2196F3',
+      order_confirmed: '#4CAF50',
+      stock: '#FF9800',
+      payment: '#9C27B0',
+      system: '#607D8B',
+      other: '#607D8B'
+    };
+    return colors[type] || '#607D8B';
+  };
+
+  const getTimeAgo = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+    
+    if (seconds < 60) return 'Just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+    if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
+    return date.toLocaleDateString('en-IN');
+  };
+
   const fetchNotifications = async () => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API call
-      const mockNotifications = [
-        {
-          id: 1,
-          type: 'order',
-          title: 'New Order Received',
-          message: 'You have received a new order #ORD-12345',
-          time: '2 minutes ago',
-          read: false,
-          icon: <ShoppingCartOutlined />,
-          color: '#4CAF50'
-        },
-        {
-          id: 2,
-          type: 'stock',
-          title: 'Low Stock Alert',
-          message: 'Handmade Cotton Saree is running low in stock (3 units left)',
-          time: '1 hour ago',
-          read: false,
-          icon: <ExclamationCircleOutlined />,
-          color: '#FF9800'
-        },
-        {
-          id: 3,
-          type: 'order',
-          title: 'Order Delivered',
-          message: 'Order #ORD-12344 has been successfully delivered',
-          time: '3 hours ago',
-          read: true,
-          icon: <CheckCircleOutlined />,
-          color: '#2196F3'
-        },
-        {
-          id: 4,
-          type: 'order',
-          title: 'New Order Received',
-          message: 'You have received a new order #ORD-12346',
-          time: '5 hours ago',
-          read: true,
-          icon: <ShoppingCartOutlined />,
-          color: '#4CAF50'
-        },
-        {
-          id: 5,
-          type: 'stock',
-          title: 'Low Stock Alert',
-          message: 'Bamboo Basket Set is running low in stock (2 units left)',
-          time: '1 day ago',
-          read: true,
-          icon: <ExclamationCircleOutlined />,
-          color: '#FF9800'
-        },
-        {
-          id: 6,
-          type: 'order',
-          title: 'Order Shipped',
-          message: 'Order #ORD-12343 has been shipped',
-          time: '2 days ago',
-          read: true,
-          icon: <CheckCircleOutlined />,
-          color: '#2196F3'
-        }
-      ];
-      setNotifications(mockNotifications);
+      const response = await getNotifications();
+      const notificationsData = response.data || [];
+      
+      // Transform notifications for UI
+      const transformedNotifications = notificationsData.map(notif => ({
+        id: notif._id,
+        type: notif.type,
+        title: notif.title,
+        message: notif.message,
+        time: getTimeAgo(notif.createdAt),
+        read: notif.isRead,
+        icon: getNotificationIcon(notif.type),
+        color: getNotificationColor(notif.type),
+        relatedId: notif.relatedId
+      }));
+      
+      setNotifications(transformedNotifications);
     } catch (error) {
+      console.error('Error fetching notifications:', error);
       message.error('Failed to fetch notifications');
+      setNotifications([]);
     } finally {
       setLoading(false);
     }
@@ -96,42 +97,46 @@ const Notifications = () => {
 
   const handleMarkAsRead = async (notificationId) => {
     try {
-      // TODO: Replace with actual API call
+      await markNotificationAsRead(notificationId);
       setNotifications(notifications.map(notif =>
         notif.id === notificationId ? { ...notif, read: true } : notif
       ));
       message.success('Notification marked as read');
     } catch (error) {
+      console.error('Error marking notification as read:', error);
       message.error('Failed to mark notification as read');
     }
   };
 
   const handleMarkAllAsRead = async () => {
     try {
-      // TODO: Replace with actual API call
+      await markAllNotificationsAsRead();
       setNotifications(notifications.map(notif => ({ ...notif, read: true })));
       message.success('All notifications marked as read');
     } catch (error) {
+      console.error('Error marking all notifications as read:', error);
       message.error('Failed to mark all notifications as read');
     }
   };
 
   const handleDeleteNotification = async (notificationId) => {
     try {
-      // TODO: Replace with actual API call
+      await deleteNotification(notificationId);
       setNotifications(notifications.filter(notif => notif.id !== notificationId));
       message.success('Notification deleted');
     } catch (error) {
+      console.error('Error deleting notification:', error);
       message.error('Failed to delete notification');
     }
   };
 
   const handleClearAll = async () => {
     try {
-      // TODO: Replace with actual API call
+      await clearAllNotifications();
       setNotifications([]);
       message.success('All notifications cleared');
     } catch (error) {
+      console.error('Error clearing notifications:', error);
       message.error('Failed to clear notifications');
     }
   };
