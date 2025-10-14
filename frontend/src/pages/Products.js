@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getAllProducts } from '../services/buyerApi';
+import { getAllProducts, cartAddItem } from '../services/buyerApi';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -237,9 +237,13 @@ const Products = () => {
                       </Link>
                       <button 
                         className="w-full bg-pink-100 text-pink-600 py-2 rounded-lg font-medium hover:bg-pink-200 transition-colors"
-                        onClick={() => {
-                          // Add to cart functionality
-                          alert('Add to cart functionality coming soon!');
+                        onClick={async () => {
+                          try {
+                            await cartAddItem({ productId: product._id, quantity: 1 });
+                            alert('Added to cart');
+                          } catch (err) {
+                            alert('Failed to add to cart. Please login.');
+                          }
                         }}
                       >
                         Add to Cart

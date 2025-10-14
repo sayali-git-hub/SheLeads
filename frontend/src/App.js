@@ -11,6 +11,10 @@ import DualLogin from './pages/DualLogin';
 import DualRegister from './pages/DualRegister';
 import ProductDetail from './pages/ProductDetail';
 import Checkout from './pages/Checkout';
+import Contact from './pages/Contact';
+import ProfilePage from './pages/ProfilePage';
+import Orders from './pages/Orders';
+import OrderDetails from './pages/OrderDetails';
 
 // Seller Pages
 import SellerDashboard from './pages/seller/SellerDashboard';
@@ -35,6 +39,36 @@ function App() {
             <Navbar />
             <main className="flex-grow">
               <Home />
+            </main>
+            <Footer />
+            <ToastContainer position="bottom-right" />
+          </div>
+        } />
+        <Route path="/orders/:id" element={
+          <div className="min-h-screen flex flex-col">
+            <Navbar />
+            <main className="flex-grow">
+              <OrderDetails />
+            </main>
+            <Footer />
+            <ToastContainer position="bottom-right" />
+          </div>
+        } />
+        <Route path="/orders" element={
+          <div className="min-h-screen flex flex-col">
+            <Navbar />
+            <main className="flex-grow">
+              <Orders />
+            </main>
+            <Footer />
+            <ToastContainer position="bottom-right" />
+          </div>
+        } />
+        <Route path="/profile" element={
+          <div className="min-h-screen flex flex-col">
+            <Navbar />
+            <main className="flex-grow">
+              <ProfilePage />
             </main>
             <Footer />
             <ToastContainer position="bottom-right" />
@@ -87,6 +121,16 @@ function App() {
             <Navbar />
             <main className="flex-grow">
               <Checkout />
+            </main>
+            <Footer />
+            <ToastContainer position="bottom-right" />
+          </div>
+        } />
+        <Route path="/contact" element={
+          <div className="min-h-screen flex flex-col">
+            <Navbar />
+            <main className="flex-grow">
+              <Contact />
             </main>
             <Footer />
             <ToastContainer position="bottom-right" />

@@ -70,36 +70,39 @@ export const getOrderById = async (orderId) => {
 };
 
 // Cart APIs (if needed)
-export const addToCart = async (productId, quantity) => {
-  // Implement cart functionality if backend supports it
-  // For now, we'll handle cart in frontend localStorage
-  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-  const existingItem = cart.find(item => item.productId === productId);
-  
-  if (existingItem) {
-    existingItem.quantity += quantity;
-  } else {
-    cart.push({ productId, quantity });
-  }
-  
-  localStorage.setItem('cart', JSON.stringify(cart));
-  return { success: true, cart };
+export const cartAddItem = async ({ productId, quantity }) => {
+  const response = await api.post('/cart', { productId, quantity });
+  return response.data;
 };
 
-export const getCart = () => {
-  return JSON.parse(localStorage.getItem('cart') || '[]');
+export const cartGetByBuyer = async (buyerId) => {
+  const response = await api.get(`/cart/${buyerId}`);
+  return response.data;
 };
 
-export const removeFromCart = (productId) => {
-  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-  const updatedCart = cart.filter(item => item.productId !== productId);
-  localStorage.setItem('cart', JSON.stringify(updatedCart));
-  return { success: true, cart: updatedCart };
+export const cartGetMine = async () => {
+  const response = await api.get('/cart/my');
+  return response.data;
 };
 
-export const clearCart = () => {
-  localStorage.removeItem('cart');
-  return { success: true };
+export const cartUpdateQuantity = async ({ cartItemId, quantity }) => {
+  const response = await api.put(`/cart/${cartItemId}`, { quantity });
+  return response.data;
+};
+
+export const cartRemoveItem = async (cartItemId) => {
+  const response = await api.delete(`/cart/${cartItemId}`);
+  return response.data;
+};
+
+export const getMyProfile = async () => {
+  const response = await api.get('/auth/me');
+  return response.data;
+};
+
+export const updateMyProfile = async (payload) => {
+  const response = await api.put('/auth/profile', payload);
+  return response.data;
 };
 
 export default api;

@@ -1,9 +1,10 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaShoppingCart, FaUser } from 'react-icons/fa';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const isAuthenticated = false; // Will be replaced with actual auth state
 
   return (
@@ -17,7 +18,10 @@ const Navbar = () => {
           <div className="hidden md:flex space-x-8">
             <Link to="/" className="text-gray-700 hover:text-pink-600">Home</Link>
             <Link to="/products" className="text-gray-700 hover:text-pink-600">Shop</Link>
-            <Link to="/about" className="text-gray-700 hover:text-pink-600">About</Link>
+            <Link to="/profile" className="text-gray-700 hover:text-pink-600">Profile</Link>
+            {location.pathname !== '/' && (
+              <Link to="/about" className="text-gray-700 hover:text-pink-600">About</Link>
+            )}
             <Link to="/contact" className="text-gray-700 hover:text-pink-600">Contact</Link>
           </div>
           
