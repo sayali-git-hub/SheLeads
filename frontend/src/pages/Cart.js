@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaTrash, FaPlus, FaMinus } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 import { cartGetMine, cartRemoveItem, cartUpdateQuantity } from '../services/buyerApi';
 
 const Cart = () => {
+  const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -74,6 +76,35 @@ const Cart = () => {
     } catch (err) {
       console.error('Failed to remove item', err);
     }
+  };
+
+  const handleCheckout = () => {
+    // Check if user is logged in
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Please log in to proceed with checkout');
+      navigate('/login');
+      return;
+    }
+
+    // Check if cart is empty
+    if (!cartItems.length) {
+      toast.error('Your cart is empty!');
+      return;
+    }
+
+    // Navigate to checkout with cart items
+    navigate('/checkout', { 
+      state: { 
+        cartItems: cartItems.map(item => ({
+          product: item.productId,
+          name: item.name,
+          image: item.image,
+          price: item.price,
+          quantity: item.quantity
+        }))
+      } 
+    });
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -224,12 +255,13 @@ const Cart = () => {
             </dl>
 
             <div className="mt-6">
-              <Link
-                to="/checkout"
-                className="w-full bg-pink-600 border border-transparent rounded-md shadow-sm py-3 px-4 text-base font-medium text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-pink-500 flex items-center justify-center"
+              <button
+                onClick={handleCheckout}
+                disabled={!cartItems.length}
+                className="w-full bg-pink-600 border border-transparent rounded-md shadow-sm py-3 px-4 text-base font-medium text-white hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-50 focus:ring-pink-500 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Checkout
-              </Link>
+              </button>
             </div>
             
             <div className="mt-6 text-center text-sm">

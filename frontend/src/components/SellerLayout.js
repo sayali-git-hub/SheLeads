@@ -76,7 +76,10 @@ const SellerLayout = () => {
       label: 'Logout',
       danger: true,
       onClick: () => {
-        // TODO: Implement logout logic
+        localStorage.removeItem('token');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('businessName');
         navigate('/login');
       },
     },

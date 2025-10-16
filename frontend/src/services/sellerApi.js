@@ -29,8 +29,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Unauthorized - redirect to login
+      // Unauthorized - clear auth and redirect to login
       localStorage.removeItem('token');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('businessName');
       window.location.href = '/login';
     }
     return Promise.reject(error);

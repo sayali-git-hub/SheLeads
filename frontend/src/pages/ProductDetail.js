@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { getProductById } from '../services/buyerApi';
 
 const ProductDetail = () => {
@@ -42,10 +43,18 @@ const ProductDetail = () => {
   };
 
   const handlePlaceOrder = () => {
-    // TODO: Navigate to checkout with product and quantity
+    // Check if user is logged in
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Please log in to proceed with checkout');
+      navigate('/login');
+      return;
+    }
+
+    // Navigate to checkout with product and quantity
     navigate('/checkout', { 
       state: { 
-        items: [{ 
+        cartItems: [{ 
           product: product._id, 
           quantity,
           price: product.price,

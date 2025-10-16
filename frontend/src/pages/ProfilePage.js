@@ -191,70 +191,105 @@ export default function ProfilePage() {
         <main className="col-span-3 space-y-6">
           {/* Profile Tab */}
           {activeTab === 'profile' && (
-            <div className="bg-white rounded-lg border p-6">
-              <h2 className="text-xl font-semibold mb-4">Personal Information</h2>
-              {error && error !== 'login_required' && (
-                <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">{error}</div>
-              )}
-              <form onSubmit={saveProfile} className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Name</label>
-                  <input name="name" value={profile.name} onChange={onProfileChange} className="input" placeholder="Your name" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Email</label>
-                  <input name="email" type="email" value={profile.email} onChange={onProfileChange} className="input" placeholder="your@email.com" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Phone</label>
-                  <input name="phone" value={profile.phone} onChange={onProfileChange} className="input" placeholder="+91 XXXXX XXXXX" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Profile Picture</label>
-                  <div className="flex items-center gap-3">
-                    <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
-                      {profile.profileImage ? (
-                        <img src={profile.profileImage} alt="Preview" className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-gray-400">👤</span>
-                      )}
+            <>
+              <div className="bg-white rounded-lg border p-6">
+                <h2 className="text-xl font-semibold mb-4">Personal Information</h2>
+                {error && error !== 'login_required' && (
+                  <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">{error}</div>
+                )}
+                <form onSubmit={saveProfile} className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Name</label>
+                    <input name="name" value={profile.name} onChange={onProfileChange} className="input" placeholder="Your name" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Email</label>
+                    <input name="email" type="email" value={profile.email} onChange={onProfileChange} className="input" placeholder="your@email.com" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Phone</label>
+                    <input name="phone" value={profile.phone} onChange={onProfileChange} className="input" placeholder="+91 XXXXX XXXXX" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Profile Picture</label>
+                    <div className="flex items-center gap-3">
+                      <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                        {profile.profileImage ? (
+                          <img src={profile.profileImage} alt="Preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-gray-400">👤</span>
+                        )}
+                      </div>
+                      <label className="px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input type="file" accept="image/*" className="hidden" onChange={onUploadImage} />
+                        Upload
+                      </label>
                     </div>
-                    <label className="px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-50">
-                      <input type="file" accept="image/*" className="hidden" onChange={onUploadImage} />
-                      Upload
-                    </label>
                   </div>
-                </div>
 
-                {/* Address */}
-                <div className="col-span-2 grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Street</label>
-                    <input name="street" value={profile.address.street||''} onChange={onAddressChange} className="input" />
+                  {/* Address */}
+                  <div className="col-span-2 grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Street</label>
+                      <input name="street" value={profile.address.street||''} onChange={onAddressChange} className="input" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">City</label>
+                      <input name="city" value={profile.address.city||''} onChange={onAddressChange} className="input" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">State</label>
+                      <input name="state" value={profile.address.state||''} onChange={onAddressChange} className="input" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Zip Code</label>
+                      <input name="zipCode" value={profile.address.zipCode||''} onChange={onAddressChange} className="input" />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium mb-1">Country</label>
+                      <input name="country" value={profile.address.country||''} onChange={onAddressChange} className="input" />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">City</label>
-                    <input name="city" value={profile.address.city||''} onChange={onAddressChange} className="input" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">State</label>
-                    <input name="state" value={profile.address.state||''} onChange={onAddressChange} className="input" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Zip Code</label>
-                    <input name="zipCode" value={profile.address.zipCode||''} onChange={onAddressChange} className="input" />
-                  </div>
+
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium mb-1">Country</label>
-                    <input name="country" value={profile.address.country||''} onChange={onAddressChange} className="input" />
+                    <button disabled={saving} className={`btn btn-primary ${saving?'opacity-60 cursor-not-allowed':''}`}>{saving?'Saving...':'Save Changes'}</button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Addresses Management - Only show on Profile tab */}
+              <div className="bg-white rounded-lg border p-6">
+                <h2 className="text-xl font-semibold mb-4">Saved Addresses</h2>
+                {addresses.length === 0 ? (
+                  <p className="text-gray-600 mb-4">You have no saved addresses.</p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    {addresses.map((addr, idx) => (
+                      <div key={idx} className="border rounded-lg p-4">
+                        <div className="text-gray-700 whitespace-pre-line">
+                          {addr.street}\n{addr.city}, {addr.state} {addr.zipCode}\n{addr.country}
+                        </div>
+                        <div className="mt-3 flex gap-2">
+                          <button className="btn btn-outline" onClick={() => editAddress(idx, addr)}>Edit</button>
+                          <button className="btn btn-outline" onClick={() => deleteAddress(idx)}>Delete</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <input className="input" placeholder="Street" value={newAddress.street} onChange={(e)=>setNewAddress({...newAddress, street:e.target.value})} />
+                  <input className="input" placeholder="City" value={newAddress.city} onChange={(e)=>setNewAddress({...newAddress, city:e.target.value})} />
+                  <input className="input" placeholder="State" value={newAddress.state} onChange={(e)=>setNewAddress({...newAddress, state:e.target.value})} />
+                  <input className="input" placeholder="Zip Code" value={newAddress.zipCode} onChange={(e)=>setNewAddress({...newAddress, zipCode:e.target.value})} />
+                  <input className="input col-span-2" placeholder="Country" value={newAddress.country} onChange={(e)=>setNewAddress({...newAddress, country:e.target.value})} />
+                  <div className="col-span-2">
+                    <button className="btn btn-primary" onClick={addAddress}>Add Address</button>
                   </div>
                 </div>
-
-                <div className="col-span-2">
-                  <button disabled={saving} className={`btn btn-primary ${saving?'opacity-60 cursor-not-allowed':''}`}>{saving?'Saving...':'Save Changes'}</button>
-                </div>
-              </form>
-            </div>
+              </div>
+            </>
           )}
 
           {/* Orders Tab */}
@@ -302,39 +337,6 @@ export default function ProfilePage() {
               </form>
             </div>
           )}
-
-          {/* Addresses Management */}
-          <div className="bg-white rounded-lg border p-6">
-            <h2 className="text-xl font-semibold mb-4">Saved Addresses</h2>
-            {addresses.length === 0 ? (
-              <p className="text-gray-600 mb-4">You have no saved addresses.</p>
-            ) : (
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                {addresses.map((addr, idx) => (
-                  <div key={idx} className="border rounded-lg p-4">
-                    <div className="text-gray-700 whitespace-pre-line">
-                      {addr.street}\n{addr.city}, {addr.state} {addr.zipCode}\n{addr.country}
-                    </div>
-                    <div className="mt-3 flex gap-2">
-                      <button className="btn btn-outline" onClick={() => editAddress(idx, addr)}>Edit</button>
-                      <button className="btn btn-outline" onClick={() => deleteAddress(idx)}>Delete</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-4">
-              <input className="input" placeholder="Street" value={newAddress.street} onChange={(e)=>setNewAddress({...newAddress, street:e.target.value})} />
-              <input className="input" placeholder="City" value={newAddress.city} onChange={(e)=>setNewAddress({...newAddress, city:e.target.value})} />
-              <input className="input" placeholder="State" value={newAddress.state} onChange={(e)=>setNewAddress({...newAddress, state:e.target.value})} />
-              <input className="input" placeholder="Zip Code" value={newAddress.zipCode} onChange={(e)=>setNewAddress({...newAddress, zipCode:e.target.value})} />
-              <input className="input col-span-2" placeholder="Country" value={newAddress.country} onChange={(e)=>setNewAddress({...newAddress, country:e.target.value})} />
-              <div className="col-span-2">
-                <button className="btn btn-primary" onClick={addAddress}>Add Address</button>
-              </div>
-            </div>
-          </div>
         </main>
       </div>
     </div>

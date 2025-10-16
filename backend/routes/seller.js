@@ -5,6 +5,7 @@ const Product = require('../models/Product');
 const Order = require('../models/Order');
 const Seller = require('../models/Seller');
 const Notification = require('../models/Notification');
+const User = require('../models/User');
 
 // @desc    Get seller dashboard statistics
 // @route   GET /api/seller/dashboard

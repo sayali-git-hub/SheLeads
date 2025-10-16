@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FaLock, FaArrowRight, FaCheckCircle } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 import { createOrder } from '../services/buyerApi';
 
 const Checkout = () => {
@@ -31,17 +32,18 @@ const Checkout = () => {
     // Check if user is logged in
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('Please login to continue with checkout');
-      navigate('/login', { state: { from: '/checkout', items: location.state?.items } });
+      toast.error('Please login to continue with checkout');
+      navigate('/login', { state: { from: '/checkout', cartItems: location.state?.cartItems } });
       return;
     }
 
-    // Get items from location state (passed from ProductDetail)
-    if (location.state?.items) {
-      setCartItems(location.state.items);
+    // Get items from location state (passed from Cart)
+    if (location.state?.cartItems && location.state.cartItems.length > 0) {
+      setCartItems(location.state.cartItems);
     } else {
-      // If no items, redirect to products page
-      navigate('/products');
+      // If no items, redirect to cart page
+      toast.error('No items found in cart');
+      navigate('/cart');
     }
   }, [location, navigate]);
 
@@ -112,6 +114,7 @@ const Checkout = () => {
       setPlacedOrderId(response.data.orderId);
       setOrderPlaced(true);
       setStep(4);
+      toast.success('Order placed successfully!');
     } catch (err) {
       console.error('Error placing order:', err);
       console.error('Error response:', err.response?.data);

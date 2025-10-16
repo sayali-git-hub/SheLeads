@@ -1,11 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Pages
 import Home from './pages/Home';
 import Products from './pages/Products';
+import About from './pages/About';
 import Cart from './pages/Cart';
 import DualLogin from './pages/DualLogin';
 import DualRegister from './pages/DualRegister';
@@ -24,133 +24,52 @@ import SellerProfile from './pages/seller/SellerProfile';
 import Notifications from './pages/seller/Notifications';
 
 // Components
-import Navbar from './components/layout/Navbar';
-import Footer from './components/layout/Footer';
+import RootLayout from './components/layout/RootLayout';
 import SellerLayout from './components/SellerLayout';
 import ProtectedRoute from './components/ProtectedRoute';
+import NotFound from './pages/NotFound';
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Customer Routes */}
-        <Route path="/" element={
-          <div className="min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-grow">
-              <Home />
-            </main>
-            <Footer />
-            <ToastContainer position="bottom-right" />
-          </div>
-        } />
-        <Route path="/orders/:id" element={
-          <div className="min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-grow">
-              <OrderDetails />
-            </main>
-            <Footer />
-            <ToastContainer position="bottom-right" />
-          </div>
-        } />
-        <Route path="/orders" element={
-          <div className="min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-grow">
-              <Orders />
-            </main>
-            <Footer />
-            <ToastContainer position="bottom-right" />
-          </div>
-        } />
-        <Route path="/profile" element={
-          <div className="min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-grow">
-              <ProfilePage />
-            </main>
-            <Footer />
-            <ToastContainer position="bottom-right" />
-          </div>
-        } />
-        <Route path="/products" element={
-          <div className="min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-grow">
-              <Products />
-            </main>
-            <Footer />
-            <ToastContainer position="bottom-right" />
-          </div>
-        } />
-        <Route path="/products/:id" element={
-          <div className="min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-grow">
-              <ProductDetail />
-            </main>
-            <Footer />
-            <ToastContainer position="bottom-right" />
-          </div>
-        } />
-        <Route path="/cart" element={
-          <div className="min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-grow">
-              <Cart />
-            </main>
-            <Footer />
-            <ToastContainer position="bottom-right" />
-          </div>
-        } />
-        <Route path="/login" element={
-          <>
-            <DualLogin />
-            <ToastContainer position="bottom-right" />
-          </>
-        } />
-        <Route path="/register" element={
-          <>
-            <DualRegister />
-            <ToastContainer position="bottom-right" />
-          </>
-        } />
-        <Route path="/checkout" element={
-          <div className="min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-grow">
-              <Checkout />
-            </main>
-            <Footer />
-            <ToastContainer position="bottom-right" />
-          </div>
-        } />
-        <Route path="/contact" element={
-          <div className="min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-grow">
-              <Contact />
-            </main>
-            <Footer />
-            <ToastContainer position="bottom-right" />
-          </div>
-        } />
+        {/* Public/Auth Routes (outside RootLayout) */}
+        <Route path="/login" element={<DualLogin />} />
+        <Route path="/register" element={<DualRegister />} />
+
+        {/* Customer Routes under RootLayout */}
+        <Route element={<RootLayout />}>
+          <Route index element={<ProtectedRoute><Home /></ProtectedRoute>} />
+          <Route path="products" element={<Products />} />
+          <Route path="products/:id" element={<ProductDetail />} />
+          <Route path="about" element={<About />} />
+          <Route path="cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+          <Route path="checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+          <Route path="orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+          <Route path="orders/:id" element={<ProtectedRoute><OrderDetails /></ProtectedRoute>} />
+          <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="contact" element={<Contact />} />
+        </Route>
 
         {/* Seller Routes - Protected */}
-        <Route path="/seller" element={
-          <ProtectedRoute allowedRoles={['seller', 'admin']}>
-            <SellerLayout />
-          </ProtectedRoute>
-        }>
+        <Route
+          path="/seller"
+          element={
+            <ProtectedRoute allowedRoles={['seller']}>
+              <SellerLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="dashboard" element={<SellerDashboard />} />
           <Route path="products" element={<ProductManagement />} />
           <Route path="orders" element={<OrderManagement />} />
           <Route path="profile" element={<SellerProfile />} />
           <Route path="notifications" element={<Notifications />} />
         </Route>
+
+        {/* 404 */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
-      <ToastContainer position="bottom-right" />
     </Router>
   );
 }

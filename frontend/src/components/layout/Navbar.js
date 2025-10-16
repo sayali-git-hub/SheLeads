@@ -5,7 +5,7 @@ import { FaShoppingCart, FaUser } from 'react-icons/fa';
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const isAuthenticated = false; // Will be replaced with actual auth state
+  const isAuthenticated = Boolean(localStorage.getItem('token'));
 
   return (
     <nav className="bg-white shadow-lg">
@@ -17,12 +17,12 @@ const Navbar = () => {
           
           <div className="hidden md:flex space-x-8">
             <Link to="/" className="text-gray-700 hover:text-pink-600">Home</Link>
-            <Link to="/products" className="text-gray-700 hover:text-pink-600">Shop</Link>
-            <Link to="/profile" className="text-gray-700 hover:text-pink-600">Profile</Link>
-            {location.pathname !== '/' && (
-              <Link to="/about" className="text-gray-700 hover:text-pink-600">About</Link>
-            )}
+            <Link to="/products" className="text-gray-700 hover:text-pink-600">Products</Link>
+            <Link to="/about" className="text-gray-700 hover:text-pink-600">About</Link>
             <Link to="/contact" className="text-gray-700 hover:text-pink-600">Contact</Link>
+            {isAuthenticated && (
+              <Link to="/profile" className="text-gray-700 hover:text-pink-600">Profile</Link>
+            )}
           </div>
           
           <div className="flex items-center space-x-4">
@@ -44,7 +44,7 @@ const Navbar = () => {
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden group-hover:block">
                   <Link to="/profile" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</Link>
                   <Link to="/orders" className="block px-4 py-2 text-gray-700 hover:bg-gray-100">My Orders</Link>
-                  <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+                  <button className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100" onClick={() => { localStorage.removeItem('token'); localStorage.removeItem('userRole'); localStorage.removeItem('userName'); localStorage.removeItem('businessName'); navigate('/login'); }}>
                     Logout
                   </button>
                 </div>
